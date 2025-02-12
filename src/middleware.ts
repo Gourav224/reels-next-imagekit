@@ -1,40 +1,31 @@
-import { auth } from "./lib/auth";
+import { NextResponse } from "next/server";
+import { auth } from "./lib/auth"; // Assuming your auth function works here
 
 export default auth((req) => {
-    console.log(req.auth);
+    const { pathname } = req.nextUrl;
+
+    // Allow auth-related routes
+    if (
+        pathname.startsWith("/api/auth") ||
+        pathname === "/login" ||
+        pathname === "/register"
+    ) {
+        return NextResponse.next();
+    }
+
+    // Public routes
+    if (pathname === "/" || pathname.startsWith("/api/videos")) {
+        return NextResponse.next();
+    }
+
+    // If user is not authenticated, redirect to login page
+    if (!req.auth) {
+        return NextResponse.redirect(new URL("/login", req.url));
+    }
+
+    // Allow the request if the user is authenticated
+    return NextResponse.next();
 });
-
-// import { withAuth } from "next-auth/middleware";
-// import { NextResponse } from "next/server";
-
-// export default withAuth(
-//   function middleware() {
-//     return NextResponse.next();
-//   },
-//   {
-//     callbacks: {
-//       authorized: ({ token, req }) => {
-//         const { pathname } = req.nextUrl;
-
-//         // Allow auth-related routes
-//         if (
-//           pathname.startsWith("/api/auth") ||
-//           pathname === "/login" ||
-//           pathname === "/register"
-//         ) {
-//           return true;
-//         }
-
-//         // Public routes
-//         if (pathname === "/" || pathname.startsWith("/api/videos")) {
-//           return true;
-//         }
-//         // All other routes require authentication
-//         return !!token;
-//       },
-//     },
-//   }
-// );
 
 export const config = {
     matcher: [
